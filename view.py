@@ -1,4 +1,5 @@
 
+import curses
 
 class View(object):
 
@@ -9,4 +10,7 @@ class View(object):
         self.window = window
 
     def addstr(self, y, x, text):
-        self.window.addstr(y, x, text)
+        try:
+            self.window.addstr(y, x, text)
+        except curses.error:
+            pass
