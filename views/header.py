@@ -12,7 +12,7 @@ class Header(View):
         self.draw_swap(4)
 
     def draw_load(self, y):
-        self.window.addstr(1, 1, "Load:")
+        self.addstr(1, 1, "Load:")
         i = 8
         for load in self.model.load_averages:
             self.addstr(y, i, load)
