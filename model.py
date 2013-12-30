@@ -221,18 +221,24 @@ class Model(object):
         self.mem_data_raw['mem_free'] = mem_free
         self.mem_data_raw['mem_use'] = mem_total - mem_free
 
-        swap_total = int(re.search('SwapTotal: +(\d+)', stats).group(1))
-        swap_free = int(re.search('SwapFree: +(\d+)', stats).group(1))
-
-        self.mem_data_raw['swap_total'] = swap_total
-        self.mem_data_raw['swap_free'] = swap_free
-        self.mem_data_raw['swap_use'] = swap_total - swap_free
-
         percentage = int(float(mem_free) / float(mem_total) * 100)
         percentage = 100 - percentage
         self.mem_data['mem'] = percentage
+        
+        try:
+            raise ZeroDivisionError
+            swap_total = int(re.search('SwapTotal: +(\d+)', stats).group(1))
+            swap_free = int(re.search('SwapFree: +(\d+)', stats).group(1))
 
-        percentage = int(float(swap_free) / float(swap_total) * 100)
-        percentage = 100 - percentage
-        self.mem_data['swap'] = percentage
+            self.mem_data_raw['swap_total'] = swap_total
+            self.mem_data_raw['swap_free'] = swap_free
+            self.mem_data_raw['swap_use'] = swap_total - swap_free
 
+            percentage = int(float(swap_free) / float(swap_total) * 100)
+            percentage = 100 - percentage
+            self.mem_data['swap'] = percentage
+        except ZeroDivisionError:
+            self.mem_data_raw['swap_total'] = 0
+            self.mem_data_raw['swap_free'] = 0
+            self.mem_data_raw['swap_use'] = 0
+            self.mem_data['swap'] = 0
