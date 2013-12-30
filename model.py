@@ -212,12 +212,18 @@ class Model(object):
 
         mem_total = int(re.search('MemTotal: +(\d+)', stats).group(1))
         mem_free = int(re.search('MemFree: +(\d+)', stats).group(1))
+        cached = int(re.search('Cached: +(\d+)', stats).group(1))
+        buffers = int(re.search('Buffers: +(\d+)', stats).group(1))
+
+        mem_free = mem_free + cached + buffers
+
         self.mem_data_raw['mem_total'] = mem_total
         self.mem_data_raw['mem_free'] = mem_free
         self.mem_data_raw['mem_use'] = mem_total - mem_free
 
         swap_total = int(re.search('SwapTotal: +(\d+)', stats).group(1))
         swap_free = int(re.search('SwapFree: +(\d+)', stats).group(1))
+
         self.mem_data_raw['swap_total'] = swap_total
         self.mem_data_raw['swap_free'] = swap_free
         self.mem_data_raw['swap_use'] = swap_total - swap_free
