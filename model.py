@@ -13,7 +13,7 @@ from views.content import Content as ContentView
 
 
 class Model(object):
-    """ Utop, this class acts as the model. """
+    """ This class holds all the data. Simple and fat. """
 
     bar_width = 25
     columns = {
@@ -40,6 +40,11 @@ class Model(object):
     user_data = {}
 
     def __init__(self, stdscr=None):
+        """ Initiate the model and thus utop. Start the controller to handle 
+        user input. Call setup to start the interface and get some static info.
+        Finally start the refresh loop.
+        """
+
         self.stdscr = stdscr
         self.controller = Controller(self)
 
@@ -71,6 +76,7 @@ class Model(object):
             self.controller.handle_key(self.stdscr.getch())
 
     def set_curses(self):
+        """ Set some curses settings. """
         if self.stdscr is not None:
             curses.cbreak()
             self.stdscr.timeout(500)
@@ -160,12 +166,8 @@ class Model(object):
         )
 
     def set_cpu_data(self):
-        stats = subprocess.check_output(['cat', '/proc/stat'])
-        stats = re.split(' +', stats.split('\n')[0])[1:]
-        stats = map(int, stats)
-        self.cpu_data['busy'] = 0
+        """ Set the cpu data. Use the data from /proc/stat. 
 
-        """
         0 user: normal processes executing in user mode
         1 nice: niced processes executing in user mode
         2 system: processes executing in kernel mode
@@ -177,6 +179,11 @@ class Model(object):
         8 guest: running a normal guest
         9 guest_nice: running a niced guest
         """
+
+        stats = subprocess.check_output(['cat', '/proc/stat'])
+        stats = re.split(' +', stats.split('\n')[0])[1:]
+        stats = map(int, stats)
+        self.cpu_data['busy'] = 0
 
         prev = self.cpu_data_raw.copy()
 
@@ -201,6 +208,7 @@ class Model(object):
             pass  # First time.
 
     def set_load(self):
+        """ Set the load averages. """
         stats = subprocess.check_output(['cat', '/proc/loadavg'])
         stats = stats.split(' ')
 
@@ -208,6 +216,9 @@ class Model(object):
         self.running_processes = stats[3]
 
     def set_memory_data(self):
+        """ Set the memory info. Calculate the free memory and the percentages. 
+        The same for the swap.
+        """
         stats = subprocess.check_output(['cat', '/proc/meminfo'])
 
         mem_total = int(re.search('MemTotal: +(\d+)', stats).group(1))
@@ -224,9 +235,8 @@ class Model(object):
         percentage = int(float(mem_free) / float(mem_total) * 100)
         percentage = 100 - percentage
         self.mem_data['mem'] = percentage
-        
+
         try:
-            raise ZeroDivisionError
             swap_total = int(re.search('SwapTotal: +(\d+)', stats).group(1))
             swap_free = int(re.search('SwapFree: +(\d+)', stats).group(1))
 
