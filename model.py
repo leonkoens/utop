@@ -140,9 +140,11 @@ class Model(object):
             except IndexError:
                 continue  # last (empty) line of ps?
             except KeyError:
+                # Continue when this is the header line.
                 if data[0] == 'USER':
                     continue
 
+                # Create a new user.
                 user = {'cpu': 0.0, 'mem': 0.0, 'procs': 0}
                 self.user_data[data[0]] = user
 
@@ -153,7 +155,11 @@ class Model(object):
         for key, value in self.user_data.iteritems():
             cpu = self.user_data[key]['cpu'] / self.number_of_cpu
             self.user_data[key]['rcpu'] = cpu
-            self.user_data[key]['user'] = self.uids[key]
+            try:
+                self.user_data[key]['user'] = self.uids[key]
+            except KeyError:
+                # When a process is of an unknown user (one not in /etc/passwd).
+                self.user_data[key]['user'] = str(key)
 
     def set_sorted_user_list(self):
         """ Create a sorted list of the users. """
