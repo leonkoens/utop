@@ -79,6 +79,10 @@ class Model(object):
         """ Set some curses settings. """
         if self.stdscr is not None:
             curses.cbreak()
+
+            curses.start_color()
+            curses.use_default_colors()
+
             self.stdscr.timeout(500)
 
     def set_panes(self):
