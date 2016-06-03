@@ -1,10 +1,13 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import curses
 from model import Model
+import logging
 
 
 if __name__ == '__main__':
+    logging.basicConfig(filename='utop.log',level=logging.DEBUG)
+
     try:
         curses.wrapper(Model)
     except KeyboardInterrupt:

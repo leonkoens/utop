@@ -10,7 +10,7 @@ class PaneSet(object):
         self.set_panes()
 
     def refresh(self):
-        logging.debug(len(self.panes))
+        logging.debug("Number of panes: {:d}".format(len(self.panes)))
         for pane in self.panes:
             pane.refresh()
 

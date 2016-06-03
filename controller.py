@@ -16,3 +16,5 @@ class Controller(object):
             self.model.sort_by = 'procs'
         elif key == ord('u'):
             self.model.sort_by = 'user'
+        elif key == ord('h') or key == ord('H'):
+            self.model.mode = 'help'

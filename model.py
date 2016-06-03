@@ -64,8 +64,7 @@ class Model(object):
     def refresh(self):
         """ Refresh the panes and update the interface. """
 
-        logging.debug(self.mode)
-        logging.debug(self.paneset)
+        logging.debug("Current mode is: {}".format(self.mode))
 
         self.set_paneset()
         self.set_user_data()
@@ -94,11 +93,7 @@ class Model(object):
         """ Setup the panes. A header, footer and middle section. """
 
         try:
-            maxy, maxx = self.stdscr.getmaxyx()
-            if (self.maxy, self.maxx) == (maxy, maxx):
-                return
-
-            self.maxy, self.maxx = (maxy, maxx)
+            self.maxy, self.maxx = self.stdscr.getmaxyx()
         except AttributeError:
             return  # stdscr is not set.
 
@@ -113,7 +108,7 @@ class Model(object):
 
     def set_uid_info(self):
         """ Retrieve the system users information. """
-        passwd = subprocess.check_output(['cat', '/etc/passwd'])
+        passwd = subprocess.check_output(['cat', '/etc/passwd']).decode('utf-8')
 
         for line in passwd.split("\n"):
             try:
@@ -133,12 +128,12 @@ class Model(object):
             ['grep', '-c', 'processor'],
             stdin=cat.stdout,
             stdout=subprocess.PIPE
-        ).communicate()[0])
+        ).communicate()[0].decode('utf-8'))
 
     def set_user_data(self):
         """ Retrieve the data of the users. """
         self.user_data = {}
-        output = subprocess.check_output(['ps', 'naux'])
+        output = subprocess.check_output(['ps', 'naux']).decode('utf-8')
 
         for line in output.split("\n"):
             data = line.split()
@@ -162,7 +157,7 @@ class Model(object):
             user['mem'] += float(data[3])
             user['procs'] += 1
 
-        for key, value in self.user_data.iteritems():
+        for key, value in self.user_data.items():
             cpu = self.user_data[key]['cpu'] / self.number_of_cpu
             self.user_data[key]['rcpu'] = cpu
             try:
@@ -173,12 +168,11 @@ class Model(object):
 
     def set_sorted_user_list(self):
         """ Create a sorted list of the users. """
+        logging.debug(self.user_data)
+
         self.sorted_users = sorted(
             self.user_data,
-            cmp=lambda y, x: cmp(
-                self.user_data[x][self.sort_by],
-                self.user_data[y][self.sort_by]
-            )
+            key=lambda user: self.user_data[user][self.sort_by],
         )
 
     def set_cpu_data(self):
@@ -196,9 +190,9 @@ class Model(object):
         9 guest_nice: running a niced guest
         """
 
-        stats = subprocess.check_output(['cat', '/proc/stat'])
+        stats = subprocess.check_output(['cat', '/proc/stat']).decode('utf-8')
         stats = re.split(' +', stats.split('\n')[0])[1:]
-        stats = map(int, stats)
+        stats = list(map(int, stats))
         self.cpu_data['busy'] = 0
 
         prev = self.cpu_data_raw.copy()
@@ -211,12 +205,12 @@ class Model(object):
 
         try:
             total = 0  # Calculate total for percentages.
-            for key, value in self.cpu_data_raw.iteritems():
+            for key, value in self.cpu_data_raw.items():
                 new_value = value - prev[key]
                 total += new_value
                 self.cpu_data[key] = new_value
 
-            for key, value in self.cpu_data.iteritems():
+            for key, value in self.cpu_data.items():
                 self.cpu_data[key] = int((float(value) / float(total)) * 100)
 
             self.cpu_data['busy'] = int(100 - self.cpu_data['idle'])
@@ -225,7 +219,7 @@ class Model(object):
 
     def set_load(self):
         """ Set the load averages. """
-        stats = subprocess.check_output(['cat', '/proc/loadavg'])
+        stats = subprocess.check_output(['cat', '/proc/loadavg']).decode('utf-8')
         stats = stats.split(' ')
 
         self.load_averages = stats[:3]
@@ -235,7 +229,7 @@ class Model(object):
         """ Set the memory info. Calculate the free memory and the percentages. 
         The same for the swap.
         """
-        stats = subprocess.check_output(['cat', '/proc/meminfo'])
+        stats = subprocess.check_output(['cat', '/proc/meminfo']).decode('utf-8')
 
         mem_total = int(re.search('MemTotal: +(\d+)', stats).group(1))
         mem_free = int(re.search('MemFree: +(\d+)', stats).group(1))
