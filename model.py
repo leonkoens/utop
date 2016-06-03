@@ -1,4 +1,5 @@
 import curses
+import importlib
 import logging
 import re
 import subprocess
@@ -7,10 +8,6 @@ import traceback
 from pane import Pane
 from controller import Controller
 
-from views.footer import Footer as FooterView
-from views.header import Header as HeaderView
-from views.content import Content as ContentView
-
 
 class Model(object):
     """ This class holds all the data. Simple and fat. """
@@ -18,7 +15,7 @@ class Model(object):
     bar_width = 25
     columns = {
         'user': {'width': 25, 'title': 'User'},
-        'procs': {'width': 12, 'title': 'Processes'},
+        'procs': {'width': 8, 'title': 'PROC #'},
         'mem': {'width': 8, 'title': 'MEM %'},
         'cpu': {'width': 8, 'title': 'CPU %'},
     }
@@ -54,22 +51,30 @@ class Model(object):
             self.refresh()
 
     def setup(self):
-        """ Do some initial setup thins."""
+        """ Do some initial setup things."""
+        self.set_default_vars()
         self.set_curses()
-        self.set_panes()
         self.set_uid_info()
         self.set_number_of_cpu()
 
+    def set_default_vars(self):
+        self.mode = 'default'
+        self.paneset = None
+
     def refresh(self):
         """ Refresh the panes and update the interface. """
+
+        logging.debug(self.mode)
+        logging.debug(self.paneset)
+
+        self.set_paneset()
         self.set_user_data()
         self.set_sorted_user_list()
         self.set_cpu_data()
         self.set_load()
         self.set_memory_data()
 
-        for pane in self.panes:
-            pane.refresh()
+        self.paneset.refresh()
 
         if self.stdscr is not None:
             curses.doupdate()
@@ -85,25 +90,26 @@ class Model(object):
 
             self.stdscr.timeout(500)
 
-    def set_panes(self):
+    def set_paneset(self):
         """ Setup the panes. A header, footer and middle section. """
+
         try:
-            (self.maxy, self.maxx) = self.stdscr.getmaxyx()
+            maxy, maxx = self.stdscr.getmaxyx()
+            if (self.maxy, self.maxx) == (maxy, maxx):
+                return
+
+            self.maxy, self.maxx = (maxy, maxx)
         except AttributeError:
             return  # stdscr is not set.
 
-        header = Pane(self.stdscr, self.maxx, 10)
-        header.set_view(HeaderView(self))
+        try:
 
-        content = Pane(self.stdscr, self.maxx, self.maxy - 12, 0, 10)
-        content.set_view(ContentView(self))
+            paneset_classname = "{}PaneSet".format(self.mode.title())
+            lib = importlib.import_module('panesets.{}'.format(self.mode))
+            self.paneset = getattr(lib, paneset_classname)(self)
 
-        footer = Pane(self.stdscr, self.maxx, 2, 0, self.maxy - 2)
-        footer.set_view(FooterView(self))
-
-        self.panes.append(header)
-        self.panes.append(content)
-        self.panes.append(footer)
+        except curses.error:
+            pass  # Terminal is probably to small.
 
     def set_uid_info(self):
         """ Retrieve the system users information. """

@@ -42,11 +42,11 @@ class Header(View):
     def draw_mem(self, y):
         self.draw_bar(y, self.model.mem_data['mem'], "mem")
         raw = self.model.mem_data_raw
-        text = str(raw['mem_use']) + "/" + str(raw['mem_total'])
+        text = str(raw['mem_use'] / 1000) + "M / " + str(raw['mem_total'] / 1000) + "M"
         self.addstr(y, self.model.bar_width + 16, text)
 
     def draw_swap(self, y):
         self.draw_bar(y, self.model.mem_data['swap'], "swp")
         raw = self.model.mem_data_raw
-        text = str(raw['swap_use']) + "/" + str(raw['swap_total'])
+        text = str(raw['swap_use'] / 1000) + "M / " + str(raw['swap_total'] / 1000) + "M"
         self.addstr(y, self.model.bar_width + 16, text)

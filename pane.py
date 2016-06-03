@@ -1,3 +1,18 @@
+import logging
+
+
+class PaneSet(object):
+
+    def __init__(self, model):
+        self.model = model
+        self.panes = []
+
+        self.set_panes()
+
+    def refresh(self):
+        logging.debug(len(self.panes))
+        for pane in self.panes:
+            pane.refresh()
 
 
 class Pane(object):
@@ -13,5 +28,5 @@ class Pane(object):
         self.view = view
 
     def refresh(self):
-        self.view.draw()
         self.window.noutrefresh()
+        self.view.draw()
