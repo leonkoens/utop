@@ -23,7 +23,8 @@ class Content(View):
             j = 0
 
             for key in self.model.sorted_columns:
-                self.addstr(i, j, str(info[key]))
+                value = self.model.columns[key]['format'].format(info[key])
+                self.addstr(i, j, value)
                 j += self.model.columns[key]['width']
 
             i += 1

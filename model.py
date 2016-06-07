@@ -3,9 +3,7 @@ import importlib
 import logging
 import re
 import subprocess
-import traceback
 
-from pane import Pane
 from controller import Controller
 
 
@@ -14,10 +12,10 @@ class Model(object):
 
     bar_width = 25
     columns = {
-        'user': {'width': 25, 'title': 'User'},
-        'procs': {'width': 8, 'title': 'PROC #'},
-        'mem': {'width': 8, 'title': 'MEM %'},
-        'cpu': {'width': 8, 'title': 'CPU %'},
+        'user':     {'width': 25,   'title': 'User',    'format': '{}'},
+        'procs':    {'width': 8,    'title': 'PROC #',  'format': '{:d}'},
+        'mem':      {'width': 8,    'title': 'MEM %',   'format': '{:2.2f}'},
+        'cpu':      {'width': 8,    'title': 'CPU %',   'format': '{:2.2f}'},
     }
     cpu_data = {'user': 0, 'system': 0, 'idle': 0, 'wait': 0}
     cpu_data_raw = {}
