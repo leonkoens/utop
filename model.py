@@ -29,6 +29,7 @@ class Model(object):
     running = True
     running_processes = 0
     sort_by = 'cpu'
+    sort_order = 'asc'
     sorted_columns = ('user', 'procs', 'cpu', 'mem')
     sorted_users = []
     uids = {}
@@ -171,6 +172,7 @@ class Model(object):
         self.sorted_users = sorted(
             self.user_data,
             key=lambda user: self.user_data[user][self.sort_by],
+            reverse=self.sort_order == 'asc',
         )
 
     def set_cpu_data(self):
