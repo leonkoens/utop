@@ -34,6 +34,10 @@ class Model(object):
     sorted_users = []
     uids = {}
     user_data = {}
+    user_data_ticks = []
+    average_over_ticks = 10
+    mode = 'default'
+    paneset = None
 
     def __init__(self, stdscr=None):
         """ Initiate the model and thus utop. Start the controller to handle 
@@ -51,14 +55,9 @@ class Model(object):
 
     def setup(self):
         """ Do some initial setup things."""
-        self.set_default_vars()
         self.set_curses()
         self.set_uid_info()
         self.set_number_of_cpu()
-
-    def set_default_vars(self):
-        self.mode = 'default'
-        self.paneset = None
 
     def refresh(self):
         """ Refresh the panes and update the interface. """
@@ -101,6 +100,8 @@ class Model(object):
             paneset_classname = "{}PaneSet".format(self.mode.title())
             lib = importlib.import_module('panesets.{}'.format(self.mode))
             self.paneset = getattr(lib, paneset_classname)(self)
+
+            logging.debug('Set paneset to {}'.format(self.mode))
 
         except curses.error:
             pass  # Terminal is probably to small.
@@ -165,10 +166,12 @@ class Model(object):
                 # When a process is of an unknown user (one not in /etc/passwd).
                 self.user_data[key]['user'] = str(key)
 
+        self.user_data_ticks.append(self.user_data)
+        self.user_data_ticks = self.user_data_ticks[-1*self.average_over_ticks:]
+        logging.debug(len(self.user_data_ticks))
+
     def set_sorted_user_list(self):
         """ Create a sorted list of the users. """
-        logging.debug(self.user_data)
-
         self.sorted_users = sorted(
             self.user_data,
             key=lambda user: self.user_data[user][self.sort_by],

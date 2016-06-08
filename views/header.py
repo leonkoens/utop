@@ -10,6 +10,7 @@ class Header(View):
         self.draw_cpu(2)
         self.draw_mem(3)
         self.draw_swap(4)
+        self.draw_latest_ticks(6)
 
     def draw_load(self, y):
         self.addstr(1, 1, "Load:")
@@ -42,11 +43,18 @@ class Header(View):
     def draw_mem(self, y):
         self.draw_bar(y, self.model.mem_data['mem'], "mem")
         raw = self.model.mem_data_raw
-        text = str(raw['mem_use'] / 1000) + "M / " + str(raw['mem_total'] / 1000) + "M"
+        mem_use = "{:4.0f}M".format(raw['mem_use'] / 1000)
+        mem_total = "{:4.0f}M".format(raw['mem_total'] / 1000)
+        text = mem_use + " / " + mem_total
         self.addstr(y, self.model.bar_width + 16, text)
 
     def draw_swap(self, y):
         self.draw_bar(y, self.model.mem_data['swap'], "swp")
         raw = self.model.mem_data_raw
-        text = str(raw['swap_use'] / 1000) + "M / " + str(raw['swap_total'] / 1000) + "M"
+        swap_use = "{:4.0f}M".format(raw['swap_use'] / 1000)
+        swap_total = "{:4.0f}M".format(raw['swap_total'] / 1000)
+        text = swap_use + " / " + swap_total
         self.addstr(y, self.model.bar_width + 16, text)
+
+    def draw_latest_ticks(self, y):
+        self.addstr(y, 4, 'last 5 ticks')
