@@ -5,25 +5,23 @@ class Help(View):
 
     def draw(self):
         self.window.erase()
-        help = {
+
+        help_items = {
             'sorting': [
                 'c - cpu',
                 'p - processes',
                 'm - memory',
-            ]
-                
+            ],
 
         }
 
-        y = 4
+        y = 0
         x = 4
 
-        def addstr(text):
-            self.addstr(y, x, text)
-            y += 1
+        for key in help_items.keys():
+            y += 2
+            self.addstr(y, x, "{}:".format(key.title()))
 
-        for key in help.keys():
-            addstr("{}:".format(key.title()))
-
-            for line in help[key]:
-                addstr("{}:".format(line))
+            for line in help_items[key]:
+                y += 1
+                self.addstr(y, x, "\t{}".format(line))
