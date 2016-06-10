@@ -9,8 +9,12 @@ class View(object):
     def set_window(self, window):
         self.window = window
 
-    def addstr(self, y, x, text):
+    def addstr(self, y, x, text, color=None):
+
+        if color is None:
+            color = self.model.COLOR_DEFAULT
+
         try:
-            self.window.addstr(y, x, text)
+            self.window.addstr(y, x, text, curses.color_pair(color))
         except curses.error:
             pass

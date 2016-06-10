@@ -39,6 +39,12 @@ class Model(object):
     mode = 'default'
     paneset = None
 
+    COLOR_DEFAULT = 0
+    COLOR_RED = 2
+    colors = {
+        COLOR_RED: (curses.COLOR_RED, -1),
+    }
+
     def __init__(self, stdscr=None):
         """ Initiate the model and thus utop. Start the controller to handle 
         user input. Call setup to start the interface and get some static info.
@@ -64,6 +70,7 @@ class Model(object):
 
         logging.debug("Current mode is: {}".format(self.mode))
 
+
         self.set_paneset()
         self.set_user_data()
         self.set_sorted_user_list()
@@ -84,6 +91,9 @@ class Model(object):
 
             curses.start_color()
             curses.use_default_colors()
+
+            for key, value in self.colors.items():
+                curses.init_pair(key, value[0], value[1])
 
             self.stdscr.timeout(500)
 
