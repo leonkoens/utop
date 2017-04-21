@@ -1,5 +1,5 @@
-from view import View
-import model
+from utop.view import View
+from utop import model
 
 
 class Header(View):

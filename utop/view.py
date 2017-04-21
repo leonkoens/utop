@@ -1,7 +1,6 @@
-
 import curses
 
-import model
+from utop import model
 
 class View(object):
 

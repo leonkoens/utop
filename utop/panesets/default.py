@@ -1,7 +1,7 @@
-from pane import PaneSet, Pane
-from views.footer import Footer as FooterView
-from views.header import Header as HeaderView
-from views.content import Content as ContentView
+from utop.pane import PaneSet, Pane
+from utop.views.footer import Footer as FooterView
+from utop.views.header import Header as HeaderView
+from utop.views.content import Content as ContentView
 
 
 class DefaultPaneSet(PaneSet):

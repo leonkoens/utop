@@ -1,5 +1,5 @@
-from pane import PaneSet, Pane
-from views.help import Help
+from utop.pane import PaneSet, Pane
+from utop.views.help import Help
 
 
 class HelpPaneSet(PaneSet):

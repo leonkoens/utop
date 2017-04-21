@@ -4,7 +4,7 @@ import logging
 import re
 import subprocess
 
-from controller import Controller
+from utop.controller import Controller
 
 
 COLOR_DEFAULT = 0
@@ -120,7 +120,7 @@ class Model(object):
         try:
 
             paneset_classname = "{}PaneSet".format(self.mode.title())
-            lib = importlib.import_module('panesets.{}'.format(self.mode))
+            lib = importlib.import_module('utop.panesets.{}'.format(self.mode))
             self.paneset = getattr(lib, paneset_classname)(self)
 
             logging.debug('Set paneset to {}'.format(self.mode))

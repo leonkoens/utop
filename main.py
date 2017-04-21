@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import curses
-from model import Model
+from utop.model import Model
 import logging
 
 

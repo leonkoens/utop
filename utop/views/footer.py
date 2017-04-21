@@ -1,5 +1,5 @@
 
-from view import View
+from utop.view import View
 
 
 class Footer(View):
