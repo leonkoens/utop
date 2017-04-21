@@ -1,6 +1,8 @@
 
 import curses
 
+import model
+
 class View(object):
 
     def __init__(self, model):
@@ -9,12 +11,17 @@ class View(object):
     def set_window(self, window):
         self.window = window
 
-    def addstr(self, y, x, text, color=None):
+    def addstr(self, y, x, text, color=None, underline=False):
 
         if color is None:
-            color = self.model.COLOR_DEFAULT
+            color = model.COLOR_DEFAULT
+
+        color = curses.color_pair(color)
+
+        if underline:
+            color = color | curses.A_UNDERLINE
 
         try:
-            self.window.addstr(y, x, text, curses.color_pair(color))
+            self.window.addstr(y, x, text, color)
         except curses.error:
             pass

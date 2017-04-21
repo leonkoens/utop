@@ -7,6 +7,15 @@ import subprocess
 from controller import Controller
 
 
+COLOR_DEFAULT = 0
+COLOR_RED = 1
+COLOR_GREEN = 2
+COLOR_YELLOW = 3
+COLOR_BLUE = 4
+COLOR_MAGENTA = 5
+COLOR_CYAN = 6
+
+
 class Model(object):
     """ This class holds all the data. Simple and fat. """
 
@@ -39,10 +48,13 @@ class Model(object):
     mode = 'default'
     paneset = None
 
-    COLOR_DEFAULT = 0
-    COLOR_RED = 2
     colors = {
         COLOR_RED: (curses.COLOR_RED, -1),
+        COLOR_GREEN: (curses.COLOR_GREEN, -1),
+        COLOR_YELLOW: (curses.COLOR_YELLOW, -1),
+        COLOR_BLUE: (curses.COLOR_BLUE, -1),
+        COLOR_MAGENTA: (curses.COLOR_MAGENTA, -1),
+        COLOR_CYAN: (curses.COLOR_CYAN, -1),
     }
 
     def __init__(self, stdscr=None):

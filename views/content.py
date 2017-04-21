@@ -34,5 +34,6 @@ class Content(View):
         i = 0
 
         for key in self.model.sorted_columns:
-            self.addstr(0, i, self.model.columns[key]['title'])
+            self.addstr(0, i, self.model.columns[key]['title'][0], underline=True)
+            self.addstr(0, i+1, self.model.columns[key]['title'][1:])
             i += self.model.columns[key]['width']

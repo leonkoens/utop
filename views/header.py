@@ -1,5 +1,5 @@
-
 from view import View
+import model
 
 
 class Header(View):
@@ -26,7 +26,7 @@ class Header(View):
         width = self.model.bar_width
         bar_width = int((float(percentage) / 100.00) * width)
         self.addstr(y, 1, label + '  [')
-        self.addstr(y, 7, '|' * bar_width)
+        self.addstr(y, 7, '|' * bar_width, model.COLOR_GREEN)
         self.addstr(y, 8 + width, '] ' + str(percentage) + '%')
 
     def draw_cpu(self, y):
@@ -57,4 +57,4 @@ class Header(View):
         self.addstr(y, self.model.bar_width + 16, text)
 
     def draw_latest_ticks(self, y):
-        self.addstr(y, 4, 'last 5 ticks')
+        self.addstr(y, 4, 'last 5 ticks', model.COLOR_CYAN)
