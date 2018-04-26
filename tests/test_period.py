@@ -56,7 +56,7 @@ class PeriodTest(unittest.TestCase):
                 process = Process(pid=j, uid=1000, read_data=False)
                 process.stat = {'value': j * i}
 
-                processlist.processlist[process.pid] = process
+                processlist.processlist[process.pid] = process.get_data()
 
             period.add_tick(processlist)
 

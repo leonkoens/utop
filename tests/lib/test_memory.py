@@ -59,8 +59,8 @@ DirectMap1G:     7340032 kB"""
 
         memory._parse_meminfo()
 
-        self.assertEqual(memory.mem_total, 16306452)
-        self.assertEqual(memory.swap_total, 16654332)
+        self.assertEqual(memory.meminfo['mem_total'], 16306452)
+        self.assertEqual(memory.meminfo['swap_total'], 16654332)
 
-        self.assertEqual(memory.mem_percentage, 64)
-        self.assertEqual(memory.swap_percentage, 0)
+        self.assertEqual(memory.meminfo['mem_percentage'], 64)
+        self.assertEqual(memory.meminfo['swap_percentage'], 0)
