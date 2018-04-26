@@ -12,10 +12,10 @@ class DefaultPaneSet(PaneSet):
         maxx = self.model.maxx
         maxy = self.model.maxy
 
-        header = Pane(stdscr, maxx, 10)
+        header = Pane(stdscr, maxx, 7)
         header.set_view(HeaderView(self.model))
 
-        content = Pane(stdscr, maxx, maxy - 12, 0, 10)
+        content = Pane(stdscr, maxx, maxy - 16, 0, 7)
         content.set_view(ContentView(self.model))
 
         footer = Pane(stdscr, maxx, 2, 0, maxy - 2)

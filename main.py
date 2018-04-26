@@ -6,7 +6,7 @@ import logging
 
 
 if __name__ == '__main__':
-    logging.basicConfig(filename='utop.log',level=logging.DEBUG)
+    logging.basicConfig(filename='debug.log',level=logging.DEBUG)
 
     try:
         curses.wrapper(Model)

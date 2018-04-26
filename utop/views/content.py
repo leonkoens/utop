@@ -1,4 +1,6 @@
+import logging
 
+from utop.model import Model
 from utop.view import View
 
 
@@ -19,13 +21,14 @@ class Content(View):
         list_max = max(0, self.model.maxy - i)
 
         for user in self.model.sorted_users[:list_max]:
-            info = self.model.user_data[user]
             j = 0
 
+            user_data = self.model.user_data[user]
+
             for key in self.model.sorted_columns:
-                value = self.model.columns[key]['format'].format(info[key])
+                value = Model.columns[key]['format'].format(user_data[key])
                 self.addstr(i, j, value)
-                j += self.model.columns[key]['width']
+                j += Model.columns[key]['width']
 
             i += 1
 

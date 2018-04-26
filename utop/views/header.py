@@ -10,7 +10,6 @@ class Header(View):
         self.draw_cpu(2)
         self.draw_mem(3)
         self.draw_swap(4)
-        self.draw_latest_ticks(6)
 
     def draw_load(self, y):
         self.addstr(1, 1, "Load:")
@@ -27,34 +26,35 @@ class Header(View):
         bar_width = int((float(percentage) / 100.00) * width)
         self.addstr(y, 1, label + '  [')
         self.addstr(y, 7, '|' * bar_width, model.COLOR_GREEN)
-        self.addstr(y, 8 + width, '] ' + str(percentage) + '%')
+        self.addstr(y, 8 + width, '] {:2.0f}%'.format(percentage))
 
     def draw_cpu(self, y):
         self.draw_bar(y, self.model.cpu_data['busy'], "cpu")
 
-        user = "us " + str(self.model.cpu_data['user'])
-        system = "sy " + str(self.model.cpu_data['system'])
-        wait = "wa " + str(self.model.cpu_data['wait'])
+        user = "us {:2.0f}".format(self.model.cpu_data['user'])
+        system = "sy {:2.0f}".format(self.model.cpu_data['system'])
+        wait = "wa {:2.0f}".format(self.model.cpu_data['wait'])
 
         self.addstr(y, self.model.bar_width + 16, user)
         self.addstr(y, self.model.bar_width + 22, system)
         self.addstr(y, self.model.bar_width + 28, wait)
 
     def draw_mem(self, y):
-        self.draw_bar(y, self.model.mem_data['mem'], "mem")
-        raw = self.model.mem_data_raw
-        mem_use = "{:4.0f}M".format(raw['mem_use'] / 1000)
-        mem_total = "{:4.0f}M".format(raw['mem_total'] / 1000)
+        self.draw_bar(y, self.model.mem_data['mem_percentage'], "mem")
+
+        mem_use = "{:4.0f}M".format(self.model.mem_data['mem_use'] / 1000)
+        mem_total = "{:4.0f}M".format(self.model.mem_data['mem_total'] / 1000)
+
         text = mem_use + " / " + mem_total
+
         self.addstr(y, self.model.bar_width + 16, text)
 
     def draw_swap(self, y):
-        self.draw_bar(y, self.model.mem_data['swap'], "swp")
-        raw = self.model.mem_data_raw
-        swap_use = "{:4.0f}M".format(raw['swap_use'] / 1000)
-        swap_total = "{:4.0f}M".format(raw['swap_total'] / 1000)
-        text = swap_use + " / " + swap_total
-        self.addstr(y, self.model.bar_width + 16, text)
+        self.draw_bar(y, self.model.mem_data['swap_percentage'], "swp")
 
-    def draw_latest_ticks(self, y):
-        self.addstr(y, 4, 'last 5 ticks', model.COLOR_CYAN)
+        swap_use = "{:4.0f}M".format(self.model.mem_data['swap_use'] / 1000)
+        swap_total = "{:4.0f}M".format(self.model.mem_data['swap_total'] / 1000)
+
+        text = swap_use + " / " + swap_total
+
+        self.addstr(y, self.model.bar_width + 16, text)

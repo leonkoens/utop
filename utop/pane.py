@@ -1,7 +1,7 @@
 import logging
 
 
-class PaneSet(object):
+class PaneSet:
 
     def __init__(self, model):
         self.model = model
@@ -9,13 +9,16 @@ class PaneSet(object):
 
         self.set_panes()
 
+    def set_panes(self):
+        raise NotImplementedError()
+
     def refresh(self):
         logging.debug("Number of panes: {:d}".format(len(self.panes)))
         for pane in self.panes:
             pane.refresh()
 
 
-class Pane(object):
+class Pane:
 
     view = None
     window = None

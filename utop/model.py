@@ -1,11 +1,14 @@
 import curses
 import importlib
 import logging
-import re
 import subprocess
 
 from utop.controller import Controller
-
+from utop.lib.cpu import CPUList
+from utop.lib.memory import Memory
+from utop.lib.process import ProcessList
+from utop.lib.user import UserList
+from utop.period import Period
 
 COLOR_DEFAULT = 0
 COLOR_RED = 1
@@ -17,36 +20,16 @@ COLOR_CYAN = 6
 
 
 class Model(object):
-    """ This class holds all the data. Simple and fat. """
+    """ This class holds all the data. """
 
     bar_width = 25
     columns = {
-        'user':     {'width': 25,   'title': 'User',    'format': '{}'},
+        'user':     {'width': 25,   'title': 'User',    'format': '{:s}'},
         'procs':    {'width': 8,    'title': 'PROC #',  'format': '{:d}'},
-        'mem':      {'width': 8,    'title': 'MEM %',   'format': '{:2.2f}'},
-        'cpu':      {'width': 8,    'title': 'CPU %',   'format': '{:2.2f}'},
+        'mem_percentage':      {'width': 8,    'title': 'MEM %',   'format': '{:2.2f}'},
+        'cpu_percentage':      {'width': 8,    'title': 'CPU %',   'format': '{:2.2f}'},
     }
-    cpu_data = {'user': 0, 'system': 0, 'idle': 0, 'wait': 0}
-    cpu_data_raw = {}
-    load_averages = ()
-    maxx = 0
-    maxy = 0
-    mem_data = {}
-    mem_data_raw = {}
-    number_of_cpu = 1
-    panes = []
     running = True
-    running_processes = 0
-    sort_by = 'cpu'
-    sort_order = 'asc'
-    sorted_columns = ('user', 'procs', 'cpu', 'mem')
-    sorted_users = []
-    uids = {}
-    user_data = {}
-    user_data_ticks = []
-    average_over_ticks = 10
-    mode = 'default'
-    paneset = None
 
     colors = {
         COLOR_RED: (curses.COLOR_RED, -1),
@@ -66,29 +49,41 @@ class Model(object):
         self.stdscr = stdscr
         self.controller = Controller(self)
 
-        self.setup()
+        self.mode = 'default'
+        self.sort_by = 'cpu_percentage'
+        self.sort_order = 'asc'
+        self.ticks_max = 5
+        self.user_list = None
+        self.user_data = {}
+        self.sorted_columns = ['user', 'procs', 'mem_percentage', 'cpu_percentage']
+
+        self.cpu_period = Period(self.ticks_max)
+        self.process_list_period = Period(self.ticks_max)
+        self.memory_period = Period(self.ticks_max)
+
+        self.set_curses()
+        self.set_user_list()
 
         while self.running:
             self.refresh()
 
-    def setup(self):
-        """ Do some initial setup things."""
-        self.set_curses()
-        self.set_uid_info()
-        self.set_number_of_cpu()
-
     def refresh(self):
         """ Refresh the panes and update the interface. """
 
+        logging.debug("---")
         logging.debug("Current mode is: {}".format(self.mode))
 
-
         self.set_paneset()
-        self.set_user_data()
-        self.set_sorted_user_list()
+
+        self.update_processlist_period()
+        self.update_cpu_data_period()
+        self.update_memory_period()
+
         self.set_cpu_data()
+        self.set_mem_data()
         self.set_load()
-        self.set_memory_data()
+        self.set_user_data()
+        self.set_sorted_users()
 
         self.paneset.refresh()
 
@@ -128,71 +123,86 @@ class Model(object):
         except curses.error:
             pass  # Terminal is probably to small.
 
-    def set_uid_info(self):
+    def set_user_list(self):
         """ Retrieve the system users information. """
-        passwd = subprocess.check_output(['cat', '/etc/passwd']).decode('utf-8')
+        user_list = UserList()
+        self.user_list = user_list.get_data()
 
-        for line in passwd.split("\n"):
-            try:
-                data = line.split(":")
-                self.uids[data[2]] = data[0]
-            except IndexError:
-                pass  # Ignore headers
+    def update_cpu_data_period(self):
+        self.cpu_period.add_tick(CPUList())
 
-    def set_number_of_cpu(self):
-        """ Retrieve the number of cpu's of the system. """
-        cat = subprocess.Popen(
-            ['cat', '/proc/cpuinfo'],
-            stdout=subprocess.PIPE
-        )
+    def update_processlist_period(self):
+        self.process_list_period.add_tick(ProcessList())
 
-        self.number_of_cpu = int(subprocess.Popen(
-            ['grep', '-c', 'processor'],
-            stdin=cat.stdout,
-            stdout=subprocess.PIPE
-        ).communicate()[0].decode('utf-8'))
+    def update_memory_period(self):
+        self.memory_period.add_tick(Memory())
+
+    def get_pid_to_uid(self):
+
+        latest = self.process_list_period.ticks[-1]
+        latest_data = latest.get_data()
+
+        pid_to_uid = {}
+
+        for latest_key, latest_value in latest_data.items():
+            pid_to_uid[latest_key] = latest_value['uid']
+
+        return pid_to_uid
 
     def set_user_data(self):
-        """ Retrieve the data of the users. """
-        self.user_data = {}
-        output = subprocess.check_output(['ps', 'naux']).decode('utf-8')
+        """
+        {
+            uid: {'cpu': '5%', 'mem': '10%', 'procs': 10},
+        }
+        """
 
-        for line in output.split("\n"):
-            data = line.split()
-            user = None
+        if len(self.process_list_period.ticks) < 2:
+            return
+
+        user_data = {}
+        pid_to_uid = self.get_pid_to_uid()
+
+        process_total = self.process_list_period.get_list_totals(['resident'])
+        process_delta = self.process_list_period.get_delta(
+            ['utime', 'stime', 'cutime', 'cstime', 'resident'])
+
+        for key, value in process_delta.items():
+            try:
+                uid = pid_to_uid[key]
+            except KeyError:
+                # This process no longer exists.
+                continue
 
             try:
-                user = self.user_data[data[0]]
-
-            except IndexError:
-                continue  # last (empty) line of ps?
+                user_data[uid]['cpu'] += value['utime'] + value['stime']
+                #user_data[uid]['cpu'] += value['cutime'] + value['cstime']
+                user_data[uid]['mem'] += process_total[key]['resident']
+                user_data[uid]['procs'] += 1
             except KeyError:
-                # Continue when this is the header line.
-                if data[0] == 'USER':
-                    continue
+                user_data[uid] = {
+                    'cpu': value['utime'] + value['stime'],
+                    'mem': process_total[key]['resident'],
+                    'procs': 1,
+                    'user': self.user_list[uid]['name'],
+                }
 
-                # Create a new user.
-                user = {'cpu': 0.0, 'mem': 0.0, 'procs': 0}
-                self.user_data[data[0]] = user
+        cpu_delta = self.cpu_period.get_delta([
+            'user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest',
+            'guest_nice'
+        ])
+        cpu_delta = sum(cpu_delta['cpu'].values())
 
-            user['cpu'] += float(data[2])
-            user['mem'] += float(data[3])
-            user['procs'] += 1
+        for key, value in user_data.items():
+            user_data[key]['cpu_percentage'] = (user_data[key]['cpu'] / cpu_delta) * 100
+            user_data[key]['mem_percentage'] = (
+                                                   (user_data[key]['mem'] / self.ticks_max) /
+                                                   self.mem_data['mem_total']) * 100
 
-        for key, value in self.user_data.items():
-            cpu = self.user_data[key]['cpu'] / self.number_of_cpu
-            self.user_data[key]['rcpu'] = cpu
-            try:
-                self.user_data[key]['user'] = self.uids[key]
-            except KeyError:
-                # When a process is of an unknown user (one not in /etc/passwd).
-                self.user_data[key]['user'] = str(key)
+        logging.debug("Root %CPU  {:f}".format(user_data['0']['cpu_percentage']))
 
-        self.user_data_ticks.append(self.user_data)
-        self.user_data_ticks = self.user_data_ticks[-1*self.average_over_ticks:]
-        logging.debug(len(self.user_data_ticks))
+        self.user_data = user_data
 
-    def set_sorted_user_list(self):
+    def set_sorted_users(self):
         """ Create a sorted list of the users. """
         self.sorted_users = sorted(
             self.user_data,
@@ -200,90 +210,63 @@ class Model(object):
             reverse=self.sort_order == 'asc',
         )
 
-    def set_cpu_data(self):
-        """ Set the cpu data. Use the data from /proc/stat. 
-
-        0 user: normal processes executing in user mode
-        1 nice: niced processes executing in user mode
-        2 system: processes executing in kernel mode
-        3 idle: twiddling thumbs
-        4 iowait: waiting for I/O to complete
-        5 irq: servicing interrupts
-        6 softirq: servicing softirqs
-        7 steal: involuntary wait
-        8 guest: running a normal guest
-        9 guest_nice: running a niced guest
-        """
-
-        stats = subprocess.check_output(['cat', '/proc/stat']).decode('utf-8')
-        stats = re.split(' +', stats.split('\n')[0])[1:]
-        stats = list(map(int, stats))
-        self.cpu_data['busy'] = 0
-
-        prev = self.cpu_data_raw.copy()
-
-        self.cpu_data_raw['user'] = stats[0] + stats[1]
-        system = stats[2] + stats[5] + stats[6] + stats[8] + stats[9]
-        self.cpu_data_raw['system'] = system
-        self.cpu_data_raw['idle'] = stats[3]
-        self.cpu_data_raw['wait'] = stats[4] + stats[7]
-
-        try:
-            total = 0  # Calculate total for percentages.
-            for key, value in self.cpu_data_raw.items():
-                new_value = value - prev[key]
-                total += new_value
-                self.cpu_data[key] = new_value
-
-            for key, value in self.cpu_data.items():
-                self.cpu_data[key] = int((float(value) / float(total)) * 100)
-
-            self.cpu_data['busy'] = int(100 - self.cpu_data['idle'])
-        except KeyError:
-            pass  # First time.
-
     def set_load(self):
         """ Set the load averages. """
-        stats = subprocess.check_output(['cat', '/proc/loadavg']).decode('utf-8')
+
+        with open('/proc/loadavg', 'r') as handle:
+            stats = handle.read()
+
         stats = stats.split(' ')
 
         self.load_averages = stats[:3]
         self.running_processes = stats[3]
 
-    def set_memory_data(self):
-        """ Set the memory info. Calculate the free memory and the percentages. 
-        The same for the swap.
-        """
-        stats = subprocess.check_output(['cat', '/proc/meminfo']).decode('utf-8')
+    def set_cpu_data(self):
 
-        mem_total = int(re.search('MemTotal: +(\d+)', stats).group(1))
-        mem_free = int(re.search('MemFree: +(\d+)', stats).group(1))
-        cached = int(re.search('Cached: +(\d+)', stats).group(1))
-        buffers = int(re.search('Buffers: +(\d+)', stats).group(1))
+        cpu_delta = self.cpu_period.get_delta([
+            'user', 'nice', 'system', 'idle', 'iowait', 'irq', 'softirq', 'steal', 'guest',
+            'guest_nice'
+        ])['cpu']
 
-        mem_free = mem_free + cached + buffers
-
-        self.mem_data_raw['mem_total'] = mem_total
-        self.mem_data_raw['mem_free'] = mem_free
-        self.mem_data_raw['mem_use'] = mem_total - mem_free
-
-        percentage = int(float(mem_free) / float(mem_total) * 100)
-        percentage = 100 - percentage
-        self.mem_data['mem'] = percentage
+        total = sum(cpu_delta.values())
 
         try:
-            swap_total = int(re.search('SwapTotal: +(\d+)', stats).group(1))
-            swap_free = int(re.search('SwapFree: +(\d+)', stats).group(1))
-
-            self.mem_data_raw['swap_total'] = swap_total
-            self.mem_data_raw['swap_free'] = swap_free
-            self.mem_data_raw['swap_use'] = swap_total - swap_free
-
-            percentage = int(float(swap_free) / float(swap_total) * 100)
-            percentage = 100 - percentage
-            self.mem_data['swap'] = percentage
+            self.cpu_data = {
+                    'busy': ((total - (cpu_delta['idle'] + cpu_delta['iowait'])) / total) * 100,
+                    'user': (cpu_delta['user'] / total) * 100,
+                    'system': (cpu_delta['system'] / total) * 100,
+                    'wait': (cpu_delta['iowait'] / total) * 100,
+                }
         except ZeroDivisionError:
-            self.mem_data_raw['swap_total'] = 0
-            self.mem_data_raw['swap_free'] = 0
-            self.mem_data_raw['swap_use'] = 0
-            self.mem_data['swap'] = 0
+            self.cpu_data = {
+                'busy': 0,
+                'user': 0,
+                'system': 0,
+                'wait': 0,
+            }
+
+        logging.debug(self.cpu_data)
+
+    def set_mem_data(self):
+
+        mem_data = self.memory_period.get_total(['mem_total', 'mem_use', 'swap_total', 'swap_use'])
+
+        mem_total = mem_data['mem_total'] / len(self.memory_period.ticks)
+        mem_use = mem_data['mem_use'] / len(self.memory_period.ticks)
+
+        swap_total = mem_data['swap_total'] / len(self.memory_period.ticks)
+        swap_use = mem_data['swap_use'] / len(self.memory_period.ticks)
+
+        self.mem_data = {
+            'mem_total': mem_total,
+            'mem_use': mem_use,
+            'mem_percentage': (mem_use / mem_total) * 100,
+            'swap_total': swap_total,
+            'swap_use': swap_use,
+            'swap_percentage': (swap_use / swap_total) * 100,
+        }
+
+        logging.debug(self.mem_data)
+
+
+
