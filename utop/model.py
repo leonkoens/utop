@@ -1,7 +1,6 @@
 import curses
 import importlib
 import logging
-import subprocess
 
 from utop.controller import Controller
 from utop.lib.cpu import CPUList
@@ -49,13 +48,23 @@ class Model(object):
         self.stdscr = stdscr
         self.controller = Controller(self)
 
+        self.maxx = 0
+        self.maxy = 0
         self.mode = 'default'
+        self.paneset = None
         self.sort_by = 'cpu_percentage'
         self.sort_order = 'asc'
-        self.ticks_max = 5
-        self.user_list = None
-        self.user_data = {}
         self.sorted_columns = ['user', 'procs', 'mem_percentage', 'cpu_percentage']
+        self.sorted_users = []
+        self.ticks_max = 5
+
+        self.cpu_data = {}
+        self.load_averages = 0
+        self.mem_data = {}
+        self.running_processes = 0
+        self.user_list = None
+
+        self.user_data = {}
 
         self.cpu_period = Period(self.ticks_max)
         self.process_list_period = Period(self.ticks_max)
@@ -175,7 +184,6 @@ class Model(object):
 
             try:
                 user_data[uid]['cpu'] += value['utime'] + value['stime']
-                #user_data[uid]['cpu'] += value['cutime'] + value['cstime']
                 user_data[uid]['mem'] += process_total[key]['resident']
                 user_data[uid]['procs'] += 1
             except KeyError:
@@ -267,6 +275,3 @@ class Model(object):
         }
 
         logging.debug(self.mem_data)
-
-
-
