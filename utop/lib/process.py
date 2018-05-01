@@ -143,6 +143,10 @@ class ProcessList(DataObject):
                 # Continue when this is the header line.
                 if data[0] == 'USER':
                     continue
+            except FileNotFoundError:
+                # The Process can't find one of the files, this probably means the process no longer
+                # exists.
+                continue
 
         self.processlist = process_list
 
