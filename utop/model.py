@@ -1,6 +1,7 @@
 import curses
 import importlib
 import logging
+import subprocess
 
 from utop.controller import Controller
 from utop.lib.cpu import CPUList
@@ -72,6 +73,7 @@ class Model(object):
 
         self.set_curses()
         self.set_user_list()
+        self.set_page_size()
 
         while self.running:
             self.refresh()
@@ -202,9 +204,9 @@ class Model(object):
 
         for key, value in user_data.items():
             user_data[key]['cpu_percentage'] = (user_data[key]['cpu'] / cpu_delta) * 100
-            user_data[key]['mem_percentage'] = (
-                                                   (user_data[key]['mem'] / self.ticks_max) /
-                                                   self.mem_data['mem_total']) * 100
+
+            memory = (user_data[key]['mem'] * self.page_size) / len(self.memory_period.ticks)
+            user_data[key]['mem_percentage'] = (memory / self.mem_data['mem_total']) * 100
 
         logging.debug("Root %CPU  {:f}".format(user_data['0']['cpu_percentage']))
 
@@ -275,3 +277,6 @@ class Model(object):
         }
 
         logging.debug(self.mem_data)
+
+    def set_page_size(self):
+        self.page_size = int(subprocess.check_output(["getconf", "PAGESIZE"])) / 1024
