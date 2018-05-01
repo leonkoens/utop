@@ -27,8 +27,9 @@ class Content(View):
 
             for key in self.model.sorted_columns:
                 value = Model.columns[key]['format'].format(user_data[key])
-                self.addstr(i, j, value)
-                j += Model.columns[key]['width']
+                width = Model.columns[key]['width']
+                self.addstr(i, j, value[:width-2])
+                j += width
 
             i += 1
 
