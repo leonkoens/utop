@@ -42,8 +42,8 @@ class Header(View):
     def draw_mem(self, y):
         self.draw_bar(y, self.model.mem_data['mem_percentage'], "mem")
 
-        mem_use = "{:4.0f}M".format(self.model.mem_data['mem_use'] / 1000)
-        mem_total = "{:4.0f}M".format(self.model.mem_data['mem_total'] / 1000)
+        mem_use = "{:4.0f}M".format(self.model.mem_data['mem_use'] / 1024)
+        mem_total = "{:4.0f}M".format(self.model.mem_data['mem_total'] / 1024)
 
         text = mem_use + " / " + mem_total
 
@@ -52,8 +52,8 @@ class Header(View):
     def draw_swap(self, y):
         self.draw_bar(y, self.model.mem_data['swap_percentage'], "swp")
 
-        swap_use = "{:4.0f}M".format(self.model.mem_data['swap_use'] / 1000)
-        swap_total = "{:4.0f}M".format(self.model.mem_data['swap_total'] / 1000)
+        swap_use = "{:4.0f}M".format(self.model.mem_data['swap_use'] / 1024)
+        swap_total = "{:4.0f}M".format(self.model.mem_data['swap_total'] / 1024)
 
         text = swap_use + " / " + swap_total
 
