@@ -52,6 +52,7 @@ class Model(object):
         self.maxx = 0
         self.maxy = 0
         self.mode = 'default'
+        self.page_size = 0
         self.paneset = None
         self.sort_by = 'cpu_percentage'
         self.sort_order = 'asc'
