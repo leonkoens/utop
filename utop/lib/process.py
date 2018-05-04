@@ -143,7 +143,7 @@ class ProcessList(DataObject):
                 # Continue when this is the header line.
                 if data[0] == 'USER':
                     continue
-            except FileNotFoundError:
+            except (FileNotFoundError, ProcessLookupError) as _:
                 # The Process can't find one of the files, this probably means the process no longer
                 # exists.
                 continue
