@@ -2,6 +2,7 @@ import curses
 
 from utop import model
 
+
 class View(object):
 
     def __init__(self, model):

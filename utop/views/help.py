@@ -12,6 +12,9 @@ class Help(View):
                 'p - processes',
                 'm - memory',
             ],
+            'config': [
+                't - set number of ticks',
+            ]
 
         }
 

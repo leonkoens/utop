@@ -12,7 +12,7 @@ class DefaultPaneSet(PaneSet):
         maxx = self.model.maxx
         maxy = self.model.maxy
 
-        header_size = 7
+        header_size = 8
         footer_size = 2
 
         header = Pane(stdscr, maxx, header_size)
@@ -27,3 +27,7 @@ class DefaultPaneSet(PaneSet):
         self.panes.append(header)
         self.panes.append(content)
         self.panes.append(footer)
+
+        self.header = header
+        self.content = content
+        self.footer = footer

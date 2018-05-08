@@ -10,6 +10,7 @@ class Header(View):
         self.draw_cpu(2)
         self.draw_mem(3)
         self.draw_swap(4)
+        self.draw_info(6)
 
     def draw_load(self, y):
         self.addstr(1, 1, "Load:")
@@ -58,3 +59,11 @@ class Header(View):
         text = swap_use + " / " + swap_total
 
         self.addstr(y, self.model.bar_width + 16, text)
+
+    def draw_info(self, y):
+
+        ticks = "{:d}/{:d}".format(len(self.model.process_list_period.ticks), self.model.ticks_max)
+
+        self.addstr(y, 1, "T", underline=True)
+        self.addstr(y, 2, "icks: {:s}".format(ticks))
+

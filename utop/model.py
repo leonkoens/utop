@@ -281,3 +281,11 @@ class Model(object):
 
     def set_page_size(self):
         self.page_size = int(subprocess.check_output(["getconf", "PAGESIZE"])) / 1024
+
+    def set_ticks_max(self, ticks_max):
+        self.ticks_max = ticks_max
+
+        self.process_list_period.ticks_max = self.ticks_max
+        self.memory_period.ticks_max = self.ticks_max
+        self.cpu_period.ticks_max = self.ticks_max
+

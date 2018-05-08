@@ -19,7 +19,6 @@ class Period:
         # different
         return 'List' in latest.__class__.__name__
 
-
     def get_delta(self, values):
         delta = {}
 
