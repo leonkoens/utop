@@ -1,5 +1,4 @@
-import logging
-
+from utop import model
 from utop.model import Model
 from utop.view import View
 
@@ -38,6 +37,12 @@ class Content(View):
         i = 0
 
         for key in self.model.sorted_columns:
-            self.addstr(0, i, self.model.columns[key]['title'][0], underline=True)
-            self.addstr(0, i+1, self.model.columns[key]['title'][1:])
+            color = model.COLOR_DEFAULT
+
+            if self.model.sort_by == key:
+                color = model.COLOR_CYAN
+
+            self.addstr(0, i, self.model.columns[key]['title'][0], underline=True, color=color)
+            self.addstr(0, i+1, self.model.columns[key]['title'][1:], color=color)
+
             i += self.model.columns[key]['width']

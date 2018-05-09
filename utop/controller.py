@@ -17,9 +17,9 @@ class Controller(object):
         elif key == ord('p'):
             self.model.sort_by = 'procs'
         elif key == ord('m'):
-            self.model.sort_by = 'mem'
+            self.model.sort_by = 'mem_percentage'
         elif key == ord('c'):
-            self.model.sort_by = 'cpu'
+            self.model.sort_by = 'cpu_percentage'
         elif key == ord('u'):
             self.model.sort_by = 'user'
         elif key == ord('h') or key == ord('H'):
