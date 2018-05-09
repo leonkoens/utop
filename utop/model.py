@@ -54,6 +54,7 @@ class Model(object):
         self.mode = 'default'
         self.page_size = 0
         self.paneset = None
+        self.selected_row = 0
         self.sort_by = 'cpu_percentage'
         self.sort_order = 'asc'
         self.sorted_columns = ['user', 'procs', 'mem_percentage', 'cpu_percentage']

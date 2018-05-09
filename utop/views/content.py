@@ -27,7 +27,11 @@ class Content(View):
             for key in self.model.sorted_columns:
                 value = Model.columns[key]['format'].format(user_data[key])
                 width = Model.columns[key]['width']
-                self.addstr(i, j, value[:width-2])
+
+                if i - 1 == self.model.selected_row:
+                    self.addstr(i, j, value[:width-2], color=model.COLOR_CYAN)
+                else:
+                    self.addstr(i, j, value[:width-2])
                 j += width
 
             i += 1

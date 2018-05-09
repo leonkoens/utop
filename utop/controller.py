@@ -41,3 +41,10 @@ class Controller(object):
             box = curses.textpad.Textbox(self.model.paneset.footer.window, insert_mode=True)
             box.edit(check_return)
             self.model.set_ticks_max(int(box.gather()))
+
+        elif key == 258:
+            self.model.selected_row = min(
+                len(self.model.user_data) - 1, self.model.selected_row + 1)
+        elif key == 259:
+            self.model.selected_row = max(0, self.model.selected_row - 1)
+
