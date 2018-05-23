@@ -28,10 +28,12 @@ class Content(View):
                 value = Model.columns[key]['format'].format(user_data[key])
                 width = Model.columns[key]['width']
 
+                color = model.COLOR_DEFAULT
+
                 if i - 1 == self.model.selected_row:
-                    self.addstr(i, j, value[:width-2], color=model.COLOR_CYAN)
-                else:
-                    self.addstr(i, j, value[:width-2])
+                    color = model.COLOR_CYAN
+
+                self.addstr(i, j, value[:width-2], color=color)
                 j += width
 
             i += 1
