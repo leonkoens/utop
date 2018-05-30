@@ -1,6 +1,6 @@
 import curses.textpad
-import logging
 import curses
+import logging
 
 
 class Controller(object):
@@ -9,6 +9,9 @@ class Controller(object):
         self.model = model
 
     def handle_key(self, key):
+
+        logging.debug("Key pressed: {:d}".format(key))
+
         if key == -1:
             return
 
@@ -43,8 +46,22 @@ class Controller(object):
             self.model.set_ticks_max(int(box.gather()))
 
         elif key == 258:
+            # Arrow down
             self.model.selected_row = min(
                 len(self.model.user_data) - 1, self.model.selected_row + 1)
+
         elif key == 259:
+            # Arrow up
             self.model.selected_row = max(0, self.model.selected_row - 1)
+
+        elif key == ord(' '):
+            # Space bar
+            if self.model.selected_row in self.model.tagged_rows:
+                self.model.tagged_rows.remove(self.model.selected_row)
+            else:
+                self.model.tagged_rows.append(self.model.selected_row)
+
+        elif key == 27:
+            # Escape
+            self.model.tagged_rows = []
 

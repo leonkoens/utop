@@ -32,6 +32,8 @@ class Content(View):
 
                 if i - 1 == self.model.selected_row:
                     color = model.COLOR_CYAN
+                elif i - 1 in self.model.tagged_rows:
+                    color = model.COLOR_YELLOW
 
                 self.addstr(i, j, value[:width-2], color=color)
                 j += width

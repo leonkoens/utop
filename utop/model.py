@@ -59,6 +59,7 @@ class Model(object):
         self.sort_order = 'asc'
         self.sorted_columns = ['user', 'procs', 'mem_percentage', 'cpu_percentage']
         self.sorted_users = []
+        self.tagged_rows = []
         self.ticks_max = 5
 
         self.cpu_data = {}
@@ -83,6 +84,7 @@ class Model(object):
     def refresh(self):
         """ Refresh the panes and update the interface. """
 
+        logging.debug("\n")
         logging.debug("---")
         logging.debug("Current mode is: {}".format(self.mode))
 
@@ -115,7 +117,7 @@ class Model(object):
             for key, value in self.colors.items():
                 curses.init_pair(key, value[0], value[1])
 
-            self.stdscr.timeout(500)
+            self.stdscr.timeout(1000)
 
     def set_paneset(self):
         """ Setup the panes. A header, footer and middle section. """
