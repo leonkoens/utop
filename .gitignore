@@ -1,2 +1,4 @@
 *.pyc
 utop.log
+.idea
+TODO
